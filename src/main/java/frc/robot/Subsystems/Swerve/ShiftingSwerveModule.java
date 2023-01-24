@@ -16,7 +16,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotState;
 import frc.robot.Subsystems.Gyro.NavX;
 
 import static frc.robot.Constants.Swerve.*;
@@ -24,93 +23,28 @@ import static frc.robot.Subsystems.Swerve.SwerveUtil.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule {
-
-  private static ShiftingSwerveModule mFrontRightInstance = null;
-  private static ShiftingSwerveModule mFrontLeftInstance = null;
-  private static ShiftingSwerveModule mBackRightInstance = null;
-  private static ShiftingSwerveModule mBackLeftInstance = null;
 
   private WPI_TalonFX mSpeedMotor;
   private CANSparkMax mAngleMotor;
   private AnalogInput mAngleEncoder;
   private double kAngleEncoderOffset;
 
+  private AtomicInteger mCurrentGear;
+
   private PIDController mSpeedPID;
   private ProfiledPIDController mAnglePID;
-
-  private AtomicInteger mCurrentGear;
 
   // This is a solution for multiple gear ratios per module will get rid of in later version
   // 0 is low 1 is high
   private double[] mGearRatios;
 
-  public static ShiftingSwerveModule getBackRightInstance() {
-    if (mBackRightInstance == null) {
-      mBackRightInstance = new ShiftingSwerveModule(
-        new WPI_TalonFX(SPEED_MOTOR_PORTS[0]),
-        new CANSparkMax(ANGLE_MOTOR_PORTS[0], ANGLE_MOTOR_TYPE),
-        new AnalogInput(ANGLE_ENCODER_PORT[0]),
-        SPEED_MOTOR_INVERT[0],
-        ANGLE_MOTOR_INVERT[0],
-        ANGLE_ENCODER_OFFSETS[0],
-        OLD_DRIVE_GEAR_RATIOS
-      );
-    }
-    return mBackRightInstance;
-  }
-
-  public static ShiftingSwerveModule getFrontRightInstance() {
-    if (mFrontRightInstance == null) {
-      mFrontRightInstance = new ShiftingSwerveModule(
-        new WPI_TalonFX(SPEED_MOTOR_PORTS[1]),
-        new CANSparkMax(ANGLE_MOTOR_PORTS[1], ANGLE_MOTOR_TYPE),
-        new AnalogInput(ANGLE_ENCODER_PORT[1]),
-        SPEED_MOTOR_INVERT[1],
-        ANGLE_MOTOR_INVERT[1],
-        ANGLE_ENCODER_OFFSETS[1],
-        NEW_DRIVE_GEAR_RATIOS
-      );
-    }
-    return mFrontRightInstance;
-  }
-
-  public static ShiftingSwerveModule getFrontLeftInstance() {
-    if (mFrontLeftInstance == null) {
-      mFrontLeftInstance = new ShiftingSwerveModule(
-        new WPI_TalonFX(SPEED_MOTOR_PORTS[2]),
-        new CANSparkMax(ANGLE_MOTOR_PORTS[2], ANGLE_MOTOR_TYPE),
-        new AnalogInput(ANGLE_ENCODER_PORT[2]),
-        SPEED_MOTOR_INVERT[2],
-        ANGLE_MOTOR_INVERT[2],
-        ANGLE_ENCODER_OFFSETS[2],
-        OLD_DRIVE_GEAR_RATIOS
-      );
-    }
-    return mFrontLeftInstance;
-  }
-
-  public static ShiftingSwerveModule getBackLeftInstance() {
-    if (mBackLeftInstance == null) {
-      mBackLeftInstance = new ShiftingSwerveModule(
-        new WPI_TalonFX(SPEED_MOTOR_PORTS[3]),
-        new CANSparkMax(ANGLE_MOTOR_PORTS[3], ANGLE_MOTOR_TYPE),
-        new AnalogInput(ANGLE_ENCODER_PORT[3]),
-        SPEED_MOTOR_INVERT[3],
-        ANGLE_MOTOR_INVERT[3],
-        ANGLE_ENCODER_OFFSETS[3],
-        OLD_DRIVE_GEAR_RATIOS
-      );
-    }
-    return mBackLeftInstance;
-  }
-
   /** Creates a new SwerveModule. */
   public ShiftingSwerveModule(
       WPI_TalonFX speedMotor, 
       CANSparkMax angleMotor,
-      AnalogInput angleEncoder, 
+      AnalogInput angleEncoder,
+      AtomicInteger currentGear, 
       boolean speedInverted,
       boolean angleInverted,
       double angleEncoderOffset,
@@ -123,6 +57,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
     angleMotor.setInverted(angleInverted);
     kAngleEncoderOffset = angleEncoderOffset;
     
+    mCurrentGear = currentGear;
     mGearRatios = gearRatios;
 
     mSpeedPID = new PIDController(
@@ -142,7 +77,11 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
     mAnglePID.enableContinuousInput(0, ANGLE_ENCODER_CPR);
     mAnglePID.setTolerance(ANGLE_PID_TOLERANCE);
   }
-
+  
+  /** 
+   * Drives the swerve module with a SwerveModuleState
+   * @param state Desired swerve module state
+   */
   public void drive(SwerveModuleState state) {
     state = SwerveModuleState.optimize(state, new Rotation2d(nativeToRadians(getAngle())));
 
@@ -154,10 +93,16 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
     else 
       mAngleMotor.setVoltage(anglePIDOutput);
 
-    double speedSetpointNative = metersPerSecondToNative(state.speedMetersPerSecond, )
-
+    double speedSetpointNative = metersPerSecondToNative(state.speedMetersPerSecond, mGearRatios[mCurrentGear.get()]);
+    double speedPIDOutput = mSpeedPID.calculate(getSpeed(), speedSetpointNative);
+    
+    mSpeedMotor.setVoltage(speedPIDOutput);
   }
-
+  
+  /** 
+   * Gets the swerve module state of the module
+   * @return The SwerveModuleState of the module
+   */
   public SwerveModuleState getMeasuredState() {
     SwerveModuleState state = new SwerveModuleState(
       getSpeed(), 
@@ -170,6 +115,10 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
     return state;
   }
   
+  /** 
+   * Gets the swerve module position of the module
+   * @return The SwerveModulePosition of the module
+   */
   public SwerveModulePosition getMeasuredPosition() {
     return new SwerveModulePosition(
       WHEEL_CIRCUMFERENCE, 
@@ -178,22 +127,22 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
   }
 
   /**
-   * 
-   * @return the speed of the module in meters per second
+   * Gets the speed of the module in meters per second
+   * @return The speed of the module in meters per second
    */
   public double getSpeed() {
     return SwerveUtil.nativeToMetersPerSecond(
       mSpeedMotor.getSelectedSensorVelocity(), 
-      mGearRatios[RobotState.getInstance().getGear()]
+      mGearRatios[mCurrentGear.get()]
     );
   }
 
+  /** 
+   * Gets the angle of the module in absolute encoder ticks
+   * @return The angle of the module in absolute encoder ticks
+   */
   public double getAngle() {
     return -1 * MathUtil.inputModulus(mAngleEncoder.getAverageVoltage() - kAngleEncoderOffset, 0, ANGLE_ENCODER_CPR) + ANGLE_ENCODER_CPR;
-  }
-
-  public int getGear() {
-    return mGear
   }
 
   @Override

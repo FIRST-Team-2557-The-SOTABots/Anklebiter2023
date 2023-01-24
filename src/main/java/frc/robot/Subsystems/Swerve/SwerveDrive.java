@@ -4,8 +4,11 @@
 
 package frc.robot.Subsystems.Swerve;
 
+import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 /** Add your docs here. */
@@ -13,6 +16,8 @@ public interface SwerveDrive {
     public void drive(double fwd, double lft, double rot, Rotation2d currentAngle);
     public void drive(double fwd, double lft, double rot, Rotation2d currentAngle, Translation2d pointOfRotation);
     public void drive(SwerveModuleState[] moduleStates);
+    public void updatePose(SwerveModulePosition[] modulePositions, Rotation2d angle);
+    public void updatePose(PathPlannerState state);
     public void setFieldCentricActive(boolean fieldCentricActive);
     public boolean getFieldCentricActive();
 }

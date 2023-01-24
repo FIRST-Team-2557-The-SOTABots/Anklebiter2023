@@ -60,6 +60,7 @@ public class Constants {
 
         public static final double[] OLD_DRIVE_GEAR_RATIOS = {13.68 / 1, 6.50 / 1};
         public static final double[] NEW_DRIVE_GEAR_RATIOS = {10.40 / 1, 5.07 / 1};
+        public static final double[][] MODULE_GEAR_RATIOS = {OLD_DRIVE_GEAR_RATIOS, NEW_DRIVE_GEAR_RATIOS, OLD_DRIVE_GEAR_RATIOS, OLD_DRIVE_GEAR_RATIOS};
 
         // In meters per second
         public static final double MAX_WHEEL_SPEED = 5.2;

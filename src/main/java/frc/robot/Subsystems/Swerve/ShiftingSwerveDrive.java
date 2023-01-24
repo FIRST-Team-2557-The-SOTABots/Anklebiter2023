@@ -4,7 +4,9 @@
 
 package frc.robot.Subsystems.Swerve;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -15,11 +17,13 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotState;
 import frc.robot.Subsystems.Gyro.NavX;
 
 import static frc.robot.Constants.Swerve.*;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
 
@@ -28,6 +32,8 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   private ShiftingSwerveModule[] mSwerveModules; 
   private DoubleSolenoidSwerveShifter mShifter;
   private NavX mNavX;
+
+  private AtomicInteger mCurrentGear;
 
   private SwerveDriveKinematics mDriveKinematics;
   private SwerveDriveOdometry mDriveOdometry;
@@ -47,18 +53,32 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   
   /** Creates a new SwerveDrive. */
   private ShiftingSwerveDrive(NavX navX) {
-    // mSwerveModules = new ShiftingSwerve 
-    // Note: this module is one of the new modules
 
     mShifter = DoubleSolenoidSwerveShifter.getInstance();
     mNavX = navX;
+
+    mCurrentGear = new AtomicInteger(mShifter.getGear());
+    
+    mSwerveModules = new ShiftingSwerveModule[MODULE_NUM];
+    for (int i = 0; i < MODULE_NUM; i++) {
+      mSwerveModules[i] = new ShiftingSwerveModule(
+        new WPI_TalonFX(SPEED_MOTOR_PORTS[i]),
+        new CANSparkMax(ANGLE_MOTOR_PORTS[i], ANGLE_MOTOR_TYPE),
+        new AnalogInput(ANGLE_ENCODER_PORT[i]),
+        mCurrentGear, 
+        SPEED_MOTOR_INVERT[i],
+        ANGLE_MOTOR_INVERT[i],
+        ANGLE_ENCODER_OFFSETS[i],
+        MODULE_GEAR_RATIOS[i]
+      );
+    }
 
     mDriveKinematics = new SwerveDriveKinematics(
       BACK_RIGHT_MODULE_POSITION,
       FRONT_RIGHT_MODULE_POSITION,
       FRONT_LEFT_MODULE_POSITION,
       BACK_LEFT_MODULE_POSITION
-   );
+    );
     mDriveOdometry = new SwerveDriveOdometry(
       mDriveKinematics,
       new Rotation2d(NavX.getInstance().getGyroAngle()),
@@ -86,7 +106,9 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
    * @param pointOfRotation Point the robot will rotate around 
    */
   public void drive(double fwd, double lft, double rot, Rotation2d currentAngle, Translation2d pointOfRotation) {
-    ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(fwd, lft, rot, currentAngle);
+    ChassisSpeeds speeds = mFieldCentricActive == true ?
+      ChassisSpeeds.fromFieldRelativeSpeeds(fwd, lft, rot, currentAngle) : 
+      new ChassisSpeeds(fwd, lft, rot);
     SwerveModuleState[] moduleStates = mDriveKinematics.toSwerveModuleStates(speeds, pointOfRotation);
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, MAX_WHEEL_SPEED);
     drive(moduleStates);
@@ -108,21 +130,13 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
    */
   public void shift(int gear) {
     gear = MathUtil.clamp(gear, 0, 1); // Already clamps in DoubleSolenoidSwerveShifter however I do not care
-    RobotState.getInstance().setGear(gear);
+    mCurrentGear.set(gear);
     mShifter.shift(gear);
-  }
-
-  public void setFieldCentricActive(boolean fieldCentricActive) {
-    mFieldCentricActive = fieldCentricActive;
-  }
-
-  public boolean getFieldCentricActive() {
-    return mFieldCentricActive;
   }
   
   /** 
    * Gets the module positions from the modules
-   * @return SwerveModulePosition[]
+   * @return An array of the position of the swerve modules
    */
   public SwerveModulePosition[] getModulePositions() {
     SwerveModulePosition[] modulePositions = new SwerveModulePosition[MODULE_NUM];
@@ -131,7 +145,6 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
     }
     return modulePositions;
   }
-
   
   /** 
    * Updates the pose of the robot using module positions and angle
@@ -142,7 +155,6 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
     mDriveOdometry.update(angle, modulePositions);
   }
 
-  
   /** 
    * Updates the pose of the robot using a PathPlannerState
    * @param state State of the robot according to PathPlanner
@@ -160,7 +172,23 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
       getModulePositions(),
       pose
     );
-}
+  }
+
+  /** 
+   * Sets the status of field centric
+   * @param fieldCentricActive The desired status of field centric
+   */
+  public void setFieldCentricActive(boolean fieldCentricActive) {
+    mFieldCentricActive = fieldCentricActive;
+  }
+  
+  /** 
+   * Gets the status of field centric
+   * @return The status of field centric 
+   */
+  public boolean getFieldCentricActive() {
+    return mFieldCentricActive;
+  }
 
   @Override
   public void periodic() {
