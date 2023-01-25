@@ -21,6 +21,16 @@ public class Constants {
 
     public static final SerialPort.Port NAVX_PORT = SerialPort.Port.kMXP;
 
+    public static final class Controller {
+        public static final class Driver {
+            public static final int PORT = 0;
+        }
+
+        public static final class Manipulator {
+            public static final int PORT = 1;
+        }
+    }
+
     public static final class Swerve {
 
         public static final int MODULE_NUM = 4;
@@ -43,7 +53,9 @@ public class Constants {
 
         // TODO: double check this
         public static final Value HI_GEAR_VALUE = Value.kForward; 
-        public static final Value LO_GEAR_VALUE = Value.kForward;         
+        public static final Value LO_GEAR_VALUE = Value.kReverse; 
+        public static final int HI_GEAR_INT = 1;
+        public static final int LO_GEAR_INT = 0;        
 
         public static final double WHEEL_BASE = 23.111 * METERS_PER_INCH; // TODO: talk to jay about these numbers
         public static final double TRACK_WIDTH = 23.111 * METERS_PER_INCH; // TODO: good?
@@ -64,6 +76,8 @@ public class Constants {
 
         // In meters per second
         public static final double MAX_WHEEL_SPEED = 5.2;
+
+        public static final double MAX_ANGLULAR_SPEED = 6.3; // TODO: Unnoficial number
 
         // TODO: Tune PID
         public static final double SPEED_PID_KP = 0.0; 

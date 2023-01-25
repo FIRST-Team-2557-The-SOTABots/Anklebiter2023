@@ -12,19 +12,10 @@ import static frc.robot.Constants.Swerve.*;
 
 public class DoubleSolenoidSwerveShifter implements GearShifter {
 
-  private static DoubleSolenoidSwerveShifter mInstance = null;
-
   private final DoubleSolenoid mShifter;
 
-  public static DoubleSolenoidSwerveShifter getInstance() {
-    if (mInstance == null) {
-      mInstance = new DoubleSolenoidSwerveShifter();
-    }
-    return mInstance;
-  }
-
   /** Creates a new DoubleSolenoidSwerveShifter. */
-  private DoubleSolenoidSwerveShifter() {
+  public DoubleSolenoidSwerveShifter(DoubleSolenoid shifter) {
     this.mShifter = new DoubleSolenoid(
       PNEUMATICS_MODULE_TYPE, 
       REVERSE_CHANNEL, 

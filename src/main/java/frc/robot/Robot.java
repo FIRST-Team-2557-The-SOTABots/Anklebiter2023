@@ -4,18 +4,73 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Subsystems.Gyro.NavX;
+import frc.robot.Subsystems.Swerve.DoubleSolenoidSwerveShifter;
+import frc.robot.Subsystems.Swerve.ShiftingSwerveDrive;
+
+import static frc.robot.Constants.*;
 
 public class Robot extends TimedRobot {
-  private Command m_autonomousCommand;
+  // private Command mAutonomousCommand;
 
-  private RobotContainer m_robotContainer;
+  // private RobotContainer m_robotContainer;
+
+  private CommandXboxController mDriveStick = new CommandXboxController(Controller.Driver.PORT);
+
+  private NavX mNavX = NavX.getInstance();
+  private DoubleSolenoidSwerveShifter mShifter = new DoubleSolenoidSwerveShifter(
+    new DoubleSolenoid(PNEUMATICS_MODULE_TYPE, Swerve.FORWARD_CHANNEL, Swerve.REVERSE_CHANNEL)  
+);
+  private ShiftingSwerveDrive mSwerveDrive = new ShiftingSwerveDrive(
+    mShifter, 
+    mNavX
+  );
+
+  private void configureButtonBindings() {
+    mDriveStick.a().onTrue(
+      new InstantCommand(() -> {
+        // Inverts field centric
+        mSwerveDrive.setFieldCentricActive(!mSwerveDrive.getFieldCentricActive());
+      })
+    );
+  }
+
+  private void configureDefaultCommands() {
+    mSwerveDrive.setDefaultCommand( 
+      new RunCommand(() -> {
+        // Process gear shift inputs
+        if (mDriveStick.getRightTriggerAxis() > 0.0) mSwerveDrive.shift(Swerve.LO_GEAR_INT);
+        else mSwerveDrive.shift(Swerve.HI_GEAR_INT);
+
+        // Process stick inputs
+        double fwd = mDriveStick.getLeftY();
+        double str = mDriveStick.getLeftX();
+        double rot = mDriveStick.getRightX();
+
+        // Reverses the input, squares the input (uses signum to preserve the sign), and scale to max wheel speed
+        fwd = -Math.signum(fwd) * fwd * fwd * Swerve.MAX_WHEEL_SPEED; 
+        str = -Math.signum(str) * str * str * Swerve.MAX_WHEEL_SPEED;
+        fwd = -Math.signum(rot) * rot * rot * Swerve.MAX_ANGLULAR_SPEED;
+
+        // Passes inputs into drivetrain
+        mSwerveDrive.drive(fwd, str, rot, mNavX.getGyroRotation2d());
+
+      },
+        mSwerveDrive
+      )
+    );
+  }
 
   @Override
   public void robotInit() {
-    m_robotContainer = new RobotContainer();
+    configureButtonBindings();
+    configureDefaultCommands();
   }
 
   @Override
@@ -34,11 +89,11 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
+    // if (m_autonomousCommand != null) {
+    //   m_autonomousCommand.schedule();
+    // }
   }
 
   @Override
@@ -49,9 +104,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
-    }
+    // if (m_autonomousCommand != null) {
+    //   m_autonomousCommand.cancel();
+    // }
   }
 
   @Override

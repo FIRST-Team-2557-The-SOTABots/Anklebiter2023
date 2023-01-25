@@ -14,4 +14,5 @@ public interface SwerveModule {
     public double getAngle();
     public SwerveModuleState getMeasuredState();
     public SwerveModulePosition getMeasuredPosition();
+
 }

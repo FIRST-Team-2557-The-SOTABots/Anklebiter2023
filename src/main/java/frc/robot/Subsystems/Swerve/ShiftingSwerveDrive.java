@@ -19,6 +19,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Subsystems.Gyro.IMU;
 import frc.robot.Subsystems.Gyro.NavX;
 
 import static frc.robot.Constants.Swerve.*;
@@ -27,11 +28,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
 
-  private static ShiftingSwerveDrive mInstance = null;
-
   private ShiftingSwerveModule[] mSwerveModules; 
-  private DoubleSolenoidSwerveShifter mShifter;
-  private NavX mNavX;
+  private GearShifter mShifter;
+  private IMU mGyro;
 
   private AtomicInteger mCurrentGear;
 
@@ -40,22 +39,10 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
 
   private boolean mFieldCentricActive;
   
-  /** 
-   * Gets the instance of the swerve drive
-   * @return SwerveDrive
-   */
-  public ShiftingSwerveDrive getInstance() {
-    if (mInstance == null) {
-      mInstance = new ShiftingSwerveDrive(NavX.getInstance());
-    }
-    return mInstance;
-  }
-  
   /** Creates a new SwerveDrive. */
-  private ShiftingSwerveDrive(NavX navX) {
-
-    mShifter = DoubleSolenoidSwerveShifter.getInstance();
-    mNavX = navX;
+  public ShiftingSwerveDrive(GearShifter shifter, IMU gyro) {
+    mShifter = shifter;
+    mGyro = gyro;
 
     mCurrentGear = new AtomicInteger(mShifter.getGear());
     
@@ -89,26 +76,26 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   /** 
    * Drives the drivetrain with a standard point of rotation
    * @param fwd Forward velocity
-   * @param lft Left velocity
+   * @param str Left velocity
    * @param rot Angular velocity
    * @param currentAngle current angle of the robot
    */
-  public void drive(double fwd, double lft, double rot, Rotation2d currentAngle) {
-    drive(fwd, lft, rot, currentAngle, new Translation2d());
+  public void drive(double fwd, double str, double rot, Rotation2d currentAngle) {
+    drive(fwd, str, rot, currentAngle, new Translation2d());
   }
   
   /** 
    * Drive the drivetrain with a specified point of rotation
    * @param fwd Forward velocity
-   * @param lft Left velocity
+   * @param str Left velocity
    * @param rot Angular velocity
    * @param currentAngle Current angle of the robot
    * @param pointOfRotation Point the robot will rotate around 
    */
-  public void drive(double fwd, double lft, double rot, Rotation2d currentAngle, Translation2d pointOfRotation) {
+  public void drive(double fwd, double str, double rot, Rotation2d currentAngle, Translation2d pointOfRotation) {
     ChassisSpeeds speeds = mFieldCentricActive == true ?
-      ChassisSpeeds.fromFieldRelativeSpeeds(fwd, lft, rot, currentAngle) : 
-      new ChassisSpeeds(fwd, lft, rot);
+      ChassisSpeeds.fromFieldRelativeSpeeds(fwd, str, rot, currentAngle) : 
+      new ChassisSpeeds(fwd, str, rot);
     SwerveModuleState[] moduleStates = mDriveKinematics.toSwerveModuleStates(speeds, pointOfRotation);
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, MAX_WHEEL_SPEED);
     drive(moduleStates);
@@ -160,7 +147,7 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
    * @param state State of the robot according to PathPlanner
    */
   public void updatePose(PathPlannerState state) {
-    mNavX.setGyroAngle(state.holonomicRotation.getRadians());
+    mGyro.setGyroAngle(state.holonomicRotation.getRadians());
     Rotation2d rotation = new Rotation2d(state.holonomicRotation.getRadians());
     Pose2d pose = new Pose2d(
         state.poseMeters.getX(), 
@@ -193,6 +180,6 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    updatePose(getModulePositions(), mNavX.getGyroRotation2d());
+    updatePose(getModulePositions(), mGyro.getGyroRotation2d());
   }
 }

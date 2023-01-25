@@ -5,6 +5,7 @@
 package frc.robot.Subsystems.Swerve;
 
 /** Add your docs here. */
+// TODO: Find a place to put this
 public interface GearShifter {
     public void shift(int gear);
     public int getGear();
