@@ -36,20 +36,20 @@ public class Constants {
         public static final int MODULE_NUM = 4;
 
         // Order BR FR FL BL TODO: double check this
-        public static final int[] SPEED_MOTOR_PORTS = {8, 1, 4, 5};
-        public static final int[] ANGLE_MOTOR_PORTS = {7, 2, 3, 6};
-        public static final int[] ANGLE_ENCODER_PORT = {2, 0, 1, 3};
+        public static final int[] SPEED_MOTOR_PORTS = {3, 2, 1, 0};
+        public static final int[] ANGLE_MOTOR_PORTS = {8, 9, 4, 3};
+        public static final int[] ANGLE_ENCODER_PORT = {3, 2, 1, 0};
 
-        public static final boolean[] SPEED_MOTOR_INVERT = {false, false, false, false};
+        public static final boolean[] SPEED_MOTOR_INVERT = {true, false, true, false};
         public static final boolean[] ANGLE_MOTOR_INVERT = {false, false, false, false};
 
         public static final MotorType ANGLE_MOTOR_TYPE = MotorType.kBrushless;
 
-        public static final double[] ANGLE_ENCODER_OFFSETS = {0.0, 0.0, 0.0, 0.0}; 
+        public static final double[] ANGLE_ENCODER_OFFSETS = {1.146240117, 1.445312352, 2.126464626, 3.387450825}; 
 
         // TODO: double check this
-        public static final int FORWARD_CHANNEL = 0;
-        public static final int REVERSE_CHANNEL = 1;
+        public static final int FORWARD_CHANNEL = 6;
+        public static final int REVERSE_CHANNEL = 7;
 
         // TODO: double check this
         public static final Value HI_GEAR_VALUE = Value.kForward; 
@@ -68,7 +68,7 @@ public class Constants {
         public static final Translation2d BACK_LEFT_MODULE_POSITION = new Translation2d(-WHEEL_BASE / 2, TRACK_WIDTH / 2);
 
         public static final double TALON_ENCODER_CPR = 2048;
-        public static final double ANGLE_ENCODER_CPR = 0.0; // TODO: test this
+        public static final double ANGLE_ENCODER_CPR = 5.0; // TODO: test this
 
         public static final double[] OLD_DRIVE_GEAR_RATIOS = {13.68 / 1, 6.50 / 1};
         public static final double[] NEW_DRIVE_GEAR_RATIOS = {10.40 / 1, 5.07 / 1};
@@ -80,17 +80,17 @@ public class Constants {
         public static final double MAX_ANGLULAR_SPEED = 6.3; // TODO: Unnoficial number
 
         // TODO: Tune PID
-        public static final double SPEED_PID_KP = 0.0; 
+        public static final double SPEED_PID_KP = 0.001; 
         public static final double SPEED_PID_KI = 0.0;
         public static final double SPEED_PID_KD = 0.0;
-        public static final double SPEED_PID_TOLERANCE = 0.0;
+        public static final double SPEED_PID_TOLERANCE = 0.05;
 
-        public static final double ANGLE_PID_KP = 0.0;
+        public static final double ANGLE_PID_KP = 4;
         public static final double ANGLE_PID_KI = 0.0;
         public static final double ANGLE_PID_KD = 0.0;
         public static final double ANGLE_PID_TOLERANCE = 0.0;
-        public static final double ANGLE_PID_MAX_ACCELERATION = 0.0;
-        public static final double ANGLE_PID_MAX_VELOCITY = 0.0;        
+        public static final double ANGLE_PID_MAX_ACCELERATION = 70.0;
+        public static final double ANGLE_PID_MAX_VELOCITY = ANGLE_PID_MAX_ACCELERATION * Math.sqrt((ANGLE_ENCODER_CPR / 4) / ANGLE_PID_MAX_ACCELERATION);        
 
     }
 }
