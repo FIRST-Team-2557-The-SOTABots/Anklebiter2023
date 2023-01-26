@@ -16,7 +16,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Subsystems.Gyro.NavX;
 
 import static frc.robot.Constants.Swerve.*;
 
@@ -105,7 +104,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
   public SwerveModuleState getMeasuredState() {
     SwerveModuleState state = new SwerveModuleState(
       getSpeed(), 
-      new Rotation2d(nativeToRadians(NavX.getInstance().getGyroAngle()))
+      getRotation2d()
     );
     if (state.speedMetersPerSecond < 0.0) {
       state.speedMetersPerSecond *= -1;
@@ -142,6 +141,15 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
    */
   public double getAngle() {
     return -1 * MathUtil.inputModulus(mAngleEncoder.getAverageVoltage() - kAngleEncoderOffset, 0, ANGLE_ENCODER_CPR) + ANGLE_ENCODER_CPR;
+  }
+
+  
+  /** 
+   * Returns the angle of the module in rotation2d
+   * @return The angle of the module in 
+   */
+  public Rotation2d getRotation2d() {
+    return new Rotation2d(nativeToRadians(getAngle()));
   }
 
   /** 

@@ -7,7 +7,6 @@ package frc.robot.Subsystems.Swerve;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 
-import static frc.robot.Constants.PNEUMATICS_MODULE_TYPE;
 import static frc.robot.Constants.Swerve.*;
 
 public class DoubleSolenoidSwerveShifter implements GearShifter {
@@ -16,11 +15,7 @@ public class DoubleSolenoidSwerveShifter implements GearShifter {
 
   /** Creates a new DoubleSolenoidSwerveShifter. */
   public DoubleSolenoidSwerveShifter(DoubleSolenoid shifter) {
-    this.mShifter = new DoubleSolenoid(
-      PNEUMATICS_MODULE_TYPE, 
-      REVERSE_CHANNEL, 
-      FORWARD_CHANNEL
-    );
+    this.mShifter = shifter;
   }
 
   public void shift(int gear) {

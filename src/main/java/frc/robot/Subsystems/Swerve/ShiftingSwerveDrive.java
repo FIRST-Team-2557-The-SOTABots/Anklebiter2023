@@ -20,7 +20,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Subsystems.Gyro.IMU;
-import frc.robot.Subsystems.Gyro.NavX;
 
 import static frc.robot.Constants.Swerve.*;
 
@@ -68,7 +67,7 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
     );
     mDriveOdometry = new SwerveDriveOdometry(
       mDriveKinematics,
-      new Rotation2d(NavX.getInstance().getGyroAngle()),
+      mGyro.getGyroRotation2d(),
       getModulePositions()
     );
   }
