@@ -36,11 +36,11 @@ public class Constants {
         public static final int MODULE_NUM = 4;
 
         // Order BR FR FL BL TODO: double check this
-        public static final int[] SPEED_MOTOR_PORTS = {3, 2, 1, 0};
-        public static final int[] ANGLE_MOTOR_PORTS = {8, 9, 4, 3};
-        public static final int[] ANGLE_ENCODER_PORT = {3, 2, 1, 0};
+        public static final int[] SPEED_MOTOR_PORTS = {8, 1, 4, 5};
+        public static final int[] ANGLE_MOTOR_PORTS = {7, 2, 3, 6};
+        public static final int[] ANGLE_ENCODER_PORT = {2, 0, 1, 3};
 
-        public static final boolean[] SPEED_MOTOR_INVERT = {true, false, true, false};
+        public static final boolean[] SPEED_MOTOR_INVERT = {false, false, false, false};
         public static final boolean[] ANGLE_MOTOR_INVERT = {false, false, false, false};
 
         public static final MotorType ANGLE_MOTOR_TYPE = MotorType.kBrushless;
