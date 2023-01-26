@@ -20,7 +20,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Subsystems.Gyro.IMU;
-import frc.robot.Subsystems.Gyro.NavX;
 
 import static frc.robot.Constants.Swerve.*;
 
@@ -37,7 +36,7 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   private SwerveDriveKinematics mDriveKinematics;
   private SwerveDriveOdometry mDriveOdometry;
 
-  private boolean mFieldCentricActive;
+  private boolean mFieldCentricActive = true;
   
   /** Creates a new SwerveDrive. */
   public ShiftingSwerveDrive(GearShifter shifter, IMU gyro) {
@@ -68,7 +67,8 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
     );
     mDriveOdometry = new SwerveDriveOdometry(
       mDriveKinematics,
-      new Rotation2d(NavX.getInstance().getGyroAngle()),
+      //removed navx and used gyro
+      new Rotation2d(mGyro.getGyroAngle()),
       getModulePositions()
     );
   }
@@ -115,10 +115,9 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
    * Shifts the gear of the drivetrain
    * @param gear The gear of the robot, 0 is low 1 is high 
    */
-  public void shift(int gear) {
-    gear = MathUtil.clamp(gear, 0, 1); // Already clamps in DoubleSolenoidSwerveShifter however I do not care
-    mCurrentGear.set(gear);
+  public void shift(int gear) { // removed clamp
     mShifter.shift(gear);
+    mCurrentGear.set(mShifter.getGear());
   }
   
   /** 

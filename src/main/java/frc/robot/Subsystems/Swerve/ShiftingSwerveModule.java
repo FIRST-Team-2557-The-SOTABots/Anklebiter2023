@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Subsystems.Gyro.NavX;
 
@@ -24,8 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule {
 
-  private WPI_TalonFX mSpeedMotor;
-  private CANSparkMax mAngleMotor;
+  private MotorController mSpeedMotor;
+  private MotorController mAngleMotor;
   private AnalogInput mAngleEncoder;
   private double kAngleEncoderOffset;
 
@@ -38,10 +39,13 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
   // 0 is low 1 is high
   private double[] mGearRatios;
 
+  
+
   /** Creates a new SwerveModule. */
   public ShiftingSwerveModule(
-      WPI_TalonFX speedMotor, 
-      CANSparkMax angleMotor,
+    //changed to motorcontroller so it uses the interface this still works with the talons
+      MotorController speedMotor, 
+      MotorController angleMotor,
       AnalogInput angleEncoder,
       AtomicInteger currentGear, 
       boolean speedInverted,
@@ -105,6 +109,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
   public SwerveModuleState getMeasuredState() {
     SwerveModuleState state = new SwerveModuleState(
       getSpeed(), 
+      //TODO: check to see if the navx is the best way of getting the gyroangle
       new Rotation2d(nativeToRadians(NavX.getInstance().getGyroAngle()))
     );
     if (state.speedMetersPerSecond < 0.0) {
@@ -131,7 +136,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
    */
   public double getSpeed() {
     return nativeToMetersPerSecond(
-      mSpeedMotor.getSelectedSensorVelocity(), 
+      mSpeedMotor.get(), //TODO: check to see if this should be used for all motor controllers
       mGearRatios[mCurrentGear.get()]
     );
   }
