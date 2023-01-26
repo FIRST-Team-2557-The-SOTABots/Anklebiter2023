@@ -8,7 +8,6 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import com.revrobotics.CANSparkMax;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -36,7 +35,7 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   private SwerveDriveKinematics mDriveKinematics;
   private SwerveDriveOdometry mDriveOdometry;
 
-  private boolean mFieldCentricActive;
+  private boolean mFieldCentricActive = true;
   
   /** Creates a new SwerveDrive. */
   public ShiftingSwerveDrive(GearShifter shifter, IMU gyro) {
@@ -114,10 +113,9 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
    * Shifts the gear of the drivetrain
    * @param gear The gear of the robot, 0 is low 1 is high 
    */
-  public void shift(int gear) {
-    gear = MathUtil.clamp(gear, 0, 1); // Already clamps in DoubleSolenoidSwerveShifter however I do not care
-    mCurrentGear.set(gear);
+  public void shift(int gear) { // removed clamp
     mShifter.shift(gear);
+    mCurrentGear.set(mShifter.getGear());
   }
   
   /** 
