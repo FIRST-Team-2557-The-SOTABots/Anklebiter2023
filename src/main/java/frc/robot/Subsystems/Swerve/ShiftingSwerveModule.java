@@ -13,16 +13,20 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.Swerve.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.revrobotics.CANSparkMax;
+
 public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule {
 
-  private MotorController mSpeedMotor;
-  private MotorController mAngleMotor;
+  private WPI_TalonFX mSpeedMotor;
+  private CANSparkMax mAngleMotor;
   private AnalogInput mAngleEncoder;
   private double kAngleEncoderOffset;
 
@@ -35,13 +39,11 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
   // 0 is low 1 is high
   private double[] mGearRatios;
 
-  
-
   /** Creates a new SwerveModule. */
   public ShiftingSwerveModule(
     //changed to motorcontroller so it uses the interface this still works with the talons
-      MotorController speedMotor, 
-      MotorController angleMotor,
+      WPI_TalonFX speedMotor, 
+      CANSparkMax angleMotor,
       AnalogInput angleEncoder,
       AtomicInteger currentGear, 
       boolean speedInverted,
@@ -82,7 +84,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
    * @param state Desired swerve module state
    */
   public void drive(SwerveModuleState state) {
-    state = SwerveModuleState.optimize(state, new Rotation2d(nativeToRadians(getAngle())));
+    state = SwerveModuleState.optimize(state, getRotation2d());
 
     double angleSetpointNative = radiansToNative(state.angle.getRadians());
     double anglePIDOutput = mAnglePID.calculate(getAngle(), angleSetpointNative);
@@ -121,7 +123,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
   public SwerveModulePosition getMeasuredPosition() {
     return new SwerveModulePosition(
       WHEEL_CIRCUMFERENCE, 
-      new Rotation2d(getAngle())
+      getRotation2d()
     );
   }
 
@@ -131,7 +133,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
    */
   public double getSpeed() {
     return nativeToMetersPerSecond(
-      mSpeedMotor.get(), //TODO: check to see if this should be used for all motor controllers
+      mSpeedMotor.getSelectedSensorVelocity(), //TODO: check to see if this should be used for all motor controllers
       mGearRatios[mCurrentGear.get()]
     );
   }

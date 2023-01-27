@@ -17,6 +17,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Subsystems.Gyro.IMU;
 
@@ -106,6 +107,9 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   public void drive(SwerveModuleState[] moduleStates) {
     for (int i = 0; i < MODULE_NUM; i++) {
       mSwerveModules[i].drive(moduleStates[i]);
+      SmartDashboard.putNumber("Module speed setpoint " + i, moduleStates[i].speedMetersPerSecond);
+      SmartDashboard.putNumber("Module anlge setpoint " + i, moduleStates[i].angle.getRadians());
+
     }
   }
   
@@ -178,5 +182,10 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   public void periodic() {
     // This method will be called once per scheduler run
     updatePose(getModulePositions(), mGyro.getGyroRotation2d());
+    for (int i = 0; i < MODULE_NUM; i++) {
+      SmartDashboard.putNumber("Abs Encoder " + i, mSwerveModules[i].getAngle());
+      SmartDashboard.putNumber("Module Angle " + i, Math.toDegrees(ShiftingSwerveModule.nativeToRadians(mSwerveModules[i].getAngle())));
+    }
+    
   }
 }

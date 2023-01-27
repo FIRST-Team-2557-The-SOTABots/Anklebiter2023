@@ -38,18 +38,18 @@ public class Constants {
         // Order BR FR FL BL TODO: double check this
         public static final int[] SPEED_MOTOR_PORTS = {8, 1, 4, 5};
         public static final int[] ANGLE_MOTOR_PORTS = {7, 2, 3, 6};
-        public static final int[] ANGLE_ENCODER_PORT = {2, 0, 1, 3};
+        public static final int[] ANGLE_ENCODER_PORT = {0, 1, 2, 3};
 
         public static final boolean[] SPEED_MOTOR_INVERT = {false, false, false, false};
         public static final boolean[] ANGLE_MOTOR_INVERT = {false, false, false, false};
 
         public static final MotorType ANGLE_MOTOR_TYPE = MotorType.kBrushless;
 
-        public static final double[] ANGLE_ENCODER_OFFSETS = {1.146240117, 1.445312352, 2.126464626, 3.387450825}; 
+        public static final double[] ANGLE_ENCODER_OFFSETS = {0.242920408999999, 3.824463522999999, 1.856689775, 1.56249984}; 
 
         // TODO: double check this
-        public static final int FORWARD_CHANNEL = 6;
-        public static final int REVERSE_CHANNEL = 7;
+        public static final int FORWARD_CHANNEL = 0;
+        public static final int REVERSE_CHANNEL = 1;
 
         // TODO: double check this
         public static final Value HI_GEAR_VALUE = Value.kForward; 
@@ -85,7 +85,7 @@ public class Constants {
         public static final double SPEED_PID_KD = 0.0;
         public static final double SPEED_PID_TOLERANCE = 0.05;
 
-        public static final double ANGLE_PID_KP = 4;
+        public static final double ANGLE_PID_KP = 0.7;
         public static final double ANGLE_PID_KI = 0.0;
         public static final double ANGLE_PID_KD = 0.0;
         public static final double ANGLE_PID_TOLERANCE = 0.0;

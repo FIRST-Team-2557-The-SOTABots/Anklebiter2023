@@ -6,6 +6,8 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -22,6 +24,7 @@ public class Robot extends TimedRobot {
   // private RobotContainer m_robotContainer;
 
   private CommandXboxController mDriveStick = new CommandXboxController(Controller.Driver.PORT);
+  // private XboxController mDriverStick = new XboxController(Controller.Driver.PORT);
 
   private NavX mNavX = NavX.getInstance();
   private DoubleSolenoidSwerveShifter mShifter = new DoubleSolenoidSwerveShifter(
@@ -56,7 +59,11 @@ public class Robot extends TimedRobot {
         // Reverses the input, squares the input (uses signum to preserve the sign), and scale to max wheel speed
         fwd = -Math.signum(fwd) * fwd * fwd * Swerve.MAX_WHEEL_SPEED; 
         str = -Math.signum(str) * str * str * Swerve.MAX_WHEEL_SPEED;
-        fwd = -Math.signum(rot) * rot * rot * Swerve.MAX_ANGLULAR_SPEED;
+        rot = -Math.signum(rot) * rot * rot * Swerve.MAX_ANGLULAR_SPEED;
+
+        SmartDashboard.putNumber("fwd", fwd);
+        SmartDashboard.putNumber("str", str);        
+        SmartDashboard.putNumber("rot", rot);
 
         // Passes inputs into drivetrain
         mSwerveDrive.drive(fwd, str, rot, mNavX.getGyroRotation2d());
@@ -76,6 +83,8 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+    SmartDashboard.putBoolean("Field Centric Active", mSwerveDrive.getFieldCentricActive());
+    SmartDashboard.putNumber("Right Trigger", mDriveStick.getRightTriggerAxis());
   }
 
   @Override
