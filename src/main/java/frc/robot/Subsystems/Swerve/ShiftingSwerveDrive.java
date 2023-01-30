@@ -55,7 +55,7 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
         SPEED_MOTOR_INVERT[i],
         ANGLE_MOTOR_INVERT[i],
         ANGLE_ENCODER_OFFSETS[i],
-        MODULE_GEAR_RATIOS[i]
+        i == 1 ? ShiftingSwerveModuleType.NEW : ShiftingSwerveModuleType.OLD
       );
     }
 
@@ -95,7 +95,7 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
     ChassisSpeeds speeds = mFieldCentricActive == true ?
       ChassisSpeeds.fromFieldRelativeSpeeds(fwd, str, rot, currentAngle) : 
       new ChassisSpeeds(fwd, str, rot);
-    SwerveModuleState[] moduleStates = mDriveKinematics.toSwerveModuleStates(speeds, pointOfRotation);
+    SwerveModuleState[] moduleStates = mDriveKinematics.toSwerveModuleStates(speeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, MAX_WHEEL_SPEED);
     drive(moduleStates);
   }
@@ -107,9 +107,6 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
   public void drive(SwerveModuleState[] moduleStates) {
     for (int i = 0; i < MODULE_NUM; i++) {
       mSwerveModules[i].drive(moduleStates[i]);
-      SmartDashboard.putNumber("Module speed setpoint " + i, moduleStates[i].speedMetersPerSecond);
-      SmartDashboard.putNumber("Module anlge setpoint " + i, moduleStates[i].angle.getRadians());
-
     }
   }
   
@@ -184,8 +181,10 @@ public class ShiftingSwerveDrive extends SubsystemBase implements SwerveDrive {
     updatePose(getModulePositions(), mGyro.getGyroRotation2d());
     for (int i = 0; i < MODULE_NUM; i++) {
       SmartDashboard.putNumber("Abs Encoder " + i, mSwerveModules[i].getAngle());
+      SmartDashboard.putNumber("Abs Encoder no offset " + i, mSwerveModules[i].getAngleNoOffset());
       SmartDashboard.putNumber("Module Angle " + i, Math.toDegrees(ShiftingSwerveModule.nativeToRadians(mSwerveModules[i].getAngle())));
-    }
-    
+      SmartDashboard.putNumber("Module setpoint " + i, mSwerveModules[i].getAngleSetpoint());
+
+    }    
   }
 }

@@ -24,6 +24,7 @@ public class Constants {
     public static final class Controller {
         public static final class Driver {
             public static final int PORT = 0;
+            public static final double STICK_DEADBAND = 0.1;
         }
 
         public static final class Manipulator {
@@ -40,18 +41,16 @@ public class Constants {
         public static final int[] ANGLE_MOTOR_PORTS = {7, 2, 3, 6};
         public static final int[] ANGLE_ENCODER_PORT = {0, 1, 2, 3};
 
-        public static final boolean[] SPEED_MOTOR_INVERT = {false, false, false, false};
-        public static final boolean[] ANGLE_MOTOR_INVERT = {false, false, false, false};
+        public static final boolean[] SPEED_MOTOR_INVERT = {true, false, false, true};
+        public static final boolean[] ANGLE_MOTOR_INVERT = {false, true, false, false};
 
         public static final MotorType ANGLE_MOTOR_TYPE = MotorType.kBrushless;
 
-        public static final double[] ANGLE_ENCODER_OFFSETS = {0.242920408999999, 3.824463522999999, 1.856689775, 1.56249984}; 
+        public static final double[] ANGLE_ENCODER_OFFSETS = {4.044189039, 0.977783103, 1.697997873, 3.328857081}; 
 
-        // TODO: double check this
         public static final int FORWARD_CHANNEL = 0;
         public static final int REVERSE_CHANNEL = 1;
 
-        // TODO: double check this
         public static final Value HI_GEAR_VALUE = Value.kForward; 
         public static final Value LO_GEAR_VALUE = Value.kReverse; 
         public static final int HI_GEAR_INT = 1;
@@ -77,20 +76,26 @@ public class Constants {
         // In meters per second
         public static final double MAX_WHEEL_SPEED = 5.2;
 
-        public static final double MAX_ANGLULAR_SPEED = 6.3; // TODO: Unnoficial number
+        public static final double MAX_ANGLULAR_SPEED = 15; // TODO: Unnoficial number
 
         // TODO: Tune PID
-        public static final double SPEED_PID_KP = 0.001; 
+        public static final double SPEED_PID_KP = 0.0001; 
         public static final double SPEED_PID_KI = 0.0;
         public static final double SPEED_PID_KD = 0.0;
         public static final double SPEED_PID_TOLERANCE = 0.05;
 
-        public static final double ANGLE_PID_KP = 0.7;
+        public static final double ANGLE_PID_KP = 2.0;
         public static final double ANGLE_PID_KI = 0.0;
         public static final double ANGLE_PID_KD = 0.0;
+        public static final double[] ANGLE_PID_VALUES = {ANGLE_PID_KP, ANGLE_PID_KI, ANGLE_PID_KD};
         public static final double ANGLE_PID_TOLERANCE = 0.0;
         public static final double ANGLE_PID_MAX_ACCELERATION = 70.0;
-        public static final double ANGLE_PID_MAX_VELOCITY = ANGLE_PID_MAX_ACCELERATION * Math.sqrt((ANGLE_ENCODER_CPR / 4) / ANGLE_PID_MAX_ACCELERATION);        
+        public static final double ANGLE_PID_MAX_VELOCITY = ANGLE_PID_MAX_ACCELERATION * Math.sqrt((ANGLE_ENCODER_CPR / 4) / ANGLE_PID_MAX_ACCELERATION);
+        
+        public static final double NEW_ANGLE_PID_KP = 1;
+        public static final double NEW_ANGLE_PID_KI = 0.0;
+        public static final double NEW_ANGLE_PID_KD = 0.0;
+        public static final double[] NEW_ANGLE_PID_VALUES = {NEW_ANGLE_PID_KP, NEW_ANGLE_PID_KI, NEW_ANGLE_PID_KD};
 
     }
 }

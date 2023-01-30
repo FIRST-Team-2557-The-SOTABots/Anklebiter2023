@@ -12,8 +12,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.motorcontrol.MotorController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.Swerve.*;
@@ -38,6 +36,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
   // This is a solution for multiple gear ratios per module will get rid of in later version
   // 0 is low 1 is high
   private double[] mGearRatios;
+  private ShiftingSwerveModuleType mModuleType;
 
   /** Creates a new SwerveModule. */
   public ShiftingSwerveModule(
@@ -49,7 +48,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
       boolean speedInverted,
       boolean angleInverted,
       double angleEncoderOffset,
-      double[] gearRatios) {
+      ShiftingSwerveModuleType moduleType) {
     this.mSpeedMotor = speedMotor;
     this.mAngleMotor = angleMotor;
     this.mAngleEncoder = angleEncoder;
@@ -57,19 +56,23 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
     speedMotor.setInverted(speedInverted);
     angleMotor.setInverted(angleInverted);
     kAngleEncoderOffset = angleEncoderOffset;
+
+    mModuleType = moduleType;
     
     mCurrentGear = currentGear;
-    mGearRatios = gearRatios;
+    mGearRatios = mModuleType == ShiftingSwerveModuleType.OLD ? OLD_DRIVE_GEAR_RATIOS : NEW_DRIVE_GEAR_RATIOS;
 
     mSpeedPID = new PIDController(
       SPEED_PID_KP, 
       SPEED_PID_KI, 
       SPEED_PID_KD
     );
+
+    double[] pidValues = mModuleType == ShiftingSwerveModuleType.OLD ? ANGLE_PID_VALUES : NEW_ANGLE_PID_VALUES;
     mAnglePID = new ProfiledPIDController(
-      ANGLE_PID_KP, 
-      ANGLE_PID_KI, 
-      ANGLE_PID_KD, 
+      pidValues[0], 
+      pidValues[1], 
+      pidValues[2], 
       new TrapezoidProfile.Constraints(
         ANGLE_PID_MAX_VELOCITY,
         ANGLE_PID_MAX_ACCELERATION
@@ -77,6 +80,7 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
     );
     mAnglePID.enableContinuousInput(0, ANGLE_ENCODER_CPR);
     mAnglePID.setTolerance(ANGLE_PID_TOLERANCE);
+    
   }
   
   /** 
@@ -84,7 +88,10 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
    * @param state Desired swerve module state
    */
   public void drive(SwerveModuleState state) {
+    // The WPILib optimize function makes the new module not work
+    // if (mModuleType == ShiftingSwerveModuleType.OLD) {
     state = SwerveModuleState.optimize(state, getRotation2d());
+    // }
 
     double angleSetpointNative = radiansToNative(state.angle.getRadians());
     double anglePIDOutput = mAnglePID.calculate(getAngle(), angleSetpointNative);
@@ -146,7 +153,10 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
     return -1 * MathUtil.inputModulus(mAngleEncoder.getAverageVoltage() - kAngleEncoderOffset, 0, ANGLE_ENCODER_CPR) + ANGLE_ENCODER_CPR;
   }
 
-  
+  public double getAngleNoOffset() {
+    return mAngleEncoder.getAverageVoltage();
+  }
+
   /** 
    * Returns the angle of the module in rotation2d
    * @return The angle of the module in 
@@ -201,6 +211,16 @@ public class ShiftingSwerveModule extends SubsystemBase implements SwerveModule 
       return WHEEL_CIRCUMFERENCE / gearRatio / TALON_ENCODER_CPR;
   }
 
+  public double getAngleSetpoint() {
+    return mAnglePID.getGoal().position;
+  }
+
+  // public SwerveModuleState optimizeSwerveModuleState(SwerveModuleState desiredState, Rotation2d currentAngle) {
+  //   Rotation2d delta = desiredState.angle.minus(currentAngle);
+  //   if (Math.abs(delta.getDegrees()) > 90) {
+  //     return new SwerveModuleState()
+  //   }
+  // }
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

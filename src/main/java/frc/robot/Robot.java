@@ -6,12 +6,12 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.Controller.Driver;
 import frc.robot.Subsystems.Gyro.NavX;
 import frc.robot.Subsystems.Swerve.DoubleSolenoidSwerveShifter;
 import frc.robot.Subsystems.Swerve.ShiftingSwerveDrive;
@@ -55,6 +55,11 @@ public class Robot extends TimedRobot {
         double fwd = mDriveStick.getLeftY();
         double str = mDriveStick.getLeftX();
         double rot = mDriveStick.getRightX();
+
+        // Sets the deadband of the controller TODO: make a controller wrapper class for this 
+        fwd = Math.abs(fwd) > Driver.STICK_DEADBAND ? fwd : 0;
+        str = Math.abs(str) > Driver.STICK_DEADBAND ? str : 0;
+        rot = Math.abs(rot) > Driver.STICK_DEADBAND ? rot : 0;
 
         // Reverses the input, squares the input (uses signum to preserve the sign), and scale to max wheel speed
         fwd = -Math.signum(fwd) * fwd * fwd * Swerve.MAX_WHEEL_SPEED; 
